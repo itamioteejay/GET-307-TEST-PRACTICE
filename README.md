@@ -479,6 +479,461 @@ let timerInterval = setInterval(() => {
 </script>
 </body>
 </html>
+        align-items: center;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        z-index: 10;
+    }
+
+    .exam-info h1 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 700;
+    }
+
+    .exam-info p {
+        margin: 5px 0 0 0;
+        font-size: 14px;
+        opacity: 0.9;
+    }
+
+    .timer-container {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 24px;
+        font-weight: bold;
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .timer-warning {
+        color: #fca5a5;
+        animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+
+    .container {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+    }
+
+    .main {
+        flex: 1;
+        padding: 40px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .question-card {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+        border-top: 5px solid #3b82f6;
+    }
+
+    .question-card h3 {
+        margin-top: 0;
+        color: #3b82f6;
+        border-bottom: 2px solid #f1f5f9;
+        padding-bottom: 10px;
+    }
+
+    .question-text {
+        font-size: 18px;
+        line-height: 1.6;
+        margin-bottom: 25px;
+    }
+
+    .options label {
+        display: block;
+        background: #f8fafc;
+        margin: 10px 0;
+        padding: 15px;
+        border-radius: 8px;
+        cursor: pointer;
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s;
+        font-size: 16px;
+    }
+
+    .options label:hover {
+        background: #eff6ff;
+        border-color: #bfdbfe;
+    }
+
+    .options input {
+        margin-right: 15px;
+        transform: scale(1.2);
+    }
+
+    .hint-box {
+        display: none;
+        background: #fef9c3;
+        border-left: 4px solid #eab308;
+        padding: 15px;
+        border-radius: 0 8px 8px 0;
+        margin-bottom: 20px;
+        color: #854d0e;
+        font-weight: 600;
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-5px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .controls {
+        display: flex;
+        gap: 15px;
+        margin-top: auto;
+        flex-wrap: wrap;
+    }
+
+    button {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.1s, filter 0.2s;
+    }
+
+    button:active { transform: scale(0.98); }
+    button:hover { filter: brightness(1.1); }
+
+    .prev { background: #64748b; color: white; }
+    .next { background: #3b82f6; color: white; }
+    .hintbtn { background: #06b6d4; color: white; margin-left: auto; }
+    .flagbtn { background: #f59e0b; color: white; }
+    .submit { background: #10b981; color: white; }
+
+    .sidebar {
+        width: 300px;
+        background: white;
+        padding: 20px;
+        border-left: 1px solid #e2e8f0;
+        display: flex;
+        flex-direction: column;
+        box-shadow: -4px 0 15px rgba(0,0,0,0.02);
+    }
+
+    .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 20px;
+        font-size: 12px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .legend-item { display: flex; align-items: center; gap: 5px; }
+    .legend-box { width: 15px; height: 15px; border-radius: 3px; }
+
+    .palette {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 10px;
+        overflow-y: auto;
+        padding-right: 5px;
+    }
+
+    .palette button {
+        width: 100%;
+        aspect-ratio: 1;
+        padding: 0;
+        font-size: 14px;
+        border-radius: 6px;
+        background: #e2e8f0;
+        color: #334155;
+    }
+
+    .palette button.answered { background: #10b981; color: white; }
+    .palette button.flagged { background: #f59e0b; color: white; }
+    .palette button.active { border: 3px solid #3b82f6; transform: scale(1.05); }
+
+    .result-screen {
+        text-align: center;
+        padding: 50px;
+    }
+
+    .result-screen h2 { font-size: 32px; color: #1e293b; }
+    .score-circle {
+        width: 150px;
+        height: 150px;
+        background: linear-gradient(135deg, #10b981, #059669);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 48px;
+        font-weight: bold;
+        margin: 30px auto;
+        box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+    }
+</style>
+</head>
+
+<body>
+
+<header>
+    <div class="exam-info">
+        <h1>GET307: Artificial Intelligence</h1>
+        <p>Candidate ID: 2026/XYZ-001 | Practice Mode CBT</p>
+    </div>
+    <div class="timer-container" id="timer">30:00</div>
+</header>
+
+<div class="container">
+    <div class="main" id="mainArea">
+        <div id="questionBox" class="question-card"></div>
+        <div id="hintBox" class="hint-box"></div>
+        
+        <div class="controls" id="controlPanel">
+            <button class="prev" onclick="prevQ()">Previous</button>
+            <button class="next" onclick="nextQ()">Next</button>
+            <button class="hintbtn" onclick="showHint()">💡 Show Hint</button>
+            <button class="flagbtn" onclick="toggleFlag()" id="flagBtn">Flag for Review</button>
+            <button class="submit" onclick="confirmSubmit()">Submit Exam</button>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div class="legend">
+            <div class="legend-item"><div class="legend-box" style="background:#e2e8f0;"></div> Unanswered</div>
+            <div class="legend-item"><div class="legend-box" style="background:#10b981;"></div> Answered</div>
+            <div class="legend-item"><div class="legend-box" style="background:#f59e0b;"></div> Flagged</div>
+        </div>
+        <h3>Question Navigator</h3>
+        <div class="palette" id="palette"></div>
+    </div>
+</div>
+
+<script>
+const questions = [
+    {
+        q: "Which statement best distinguishes Artificial Intelligence from traditional software?",
+        options: [
+            "AI systems can learn patterns from data rather than relying only on explicit instructions",
+            "AI programs use faster processors",
+            "AI replaces mathematics with intuition",
+            "AI systems eliminate algorithms"
+        ],
+        a: 0,
+        hint: "Think about learning vs. fixed programming."
+    },
+    {
+        q: "In computational intelligence, fuzzy logic is preferred over classical Boolean logic when:",
+        options: [
+            "system variables exist on a spectrum rather than binary states",
+            "computers operate faster",
+            "memory is limited",
+            "sensors are unavailable"
+        ],
+        a: 0,
+        hint: "Think about 'partial truth' instead of just absolute true/false."
+    },
+    {
+        q: "Scenario: A robot arm adjusts its grip strength depending on the softness of an object detected by pressure sensors. Which AI concept is being applied?",
+        options: [
+            "Adaptive control",
+            "Static programming",
+            "Manual calibration",
+            "Deterministic automation"
+        ],
+        a: 0,
+        hint: "The robot dynamically changes behavior based on sensory feedback."
+    },
+    {
+        q: "Which ethical concern arises when an AI system trained on biased hiring data recommends candidates?",
+        options: [
+            "Algorithmic bias",
+            "Hardware failure",
+            "Sensor noise",
+            "Memory overflow"
+        ],
+        a: 0,
+        hint: "This is a fairness issue related to the data it was trained on."
+    },
+    {
+        q: "Scenario: A drone navigating terrain uses LiDAR to construct a 3D map of obstacles before planning its path. Which capability is primarily demonstrated?",
+        options: [
+            "Environmental perception",
+            "Human emotional modeling",
+            "Hardware redundancy",
+            "Data encryption"
+        ],
+        a: 0,
+        hint: "Think about spatial awareness and understanding surroundings."
+    }
+];
+
+// Generate remaining questions
+for(let i=6; i<=40; i++){
+    questions.push({
+        q: `Question ${i}: Which capability allows modern AI systems to identify complex relationships within large datasets that are difficult for humans to detect?`,
+        options: [
+            "Machine learning pattern discovery",
+            "Manual coding",
+            "Mechanical automation",
+            "Random search"
+        ],
+        a: 0,
+        hint: "It involves extracting hidden knowledge and learning directly from data."
+    });
+}
+
+let current = 0;
+let answers = new Array(questions.length).fill(null);
+let flags = new Array(questions.length).fill(false);
+let examSubmitted = false;
+
+const palette = document.getElementById("palette");
+
+// Initialize Palette
+for(let i=0; i<questions.length; i++){
+    let b = document.createElement("button");
+    b.innerText = i + 1;
+    b.onclick = () => goQ(i);
+    palette.appendChild(b);
+}
+
+function updatePalette() {
+    for(let i=0; i<questions.length; i++){
+        let btn = palette.children[i];
+        btn.className = ""; // reset classes
+        if (i === current) btn.classList.add("active");
+        if (flags[i]) btn.classList.add("flagged");
+        else if (answers[i] !== null) btn.classList.add("answered");
+    }
+}
+
+function loadQ(){
+    let q = questions[current];
+    let html = `<h3>Question ${current + 1} of ${questions.length}</h3>
+                <div class="question-text">${q.q}</div>
+                <div class="options">`;
+
+    q.options.forEach((opt, i) => {
+        let checked = answers[current] === i ? "checked" : "";
+        html += `<label>
+                    <input type="radio" name="opt" value="${i}" ${checked} onclick="saveAns(${i})"> 
+                    ${opt}
+                 </label>`;
+    });
+
+    html += `</div>`;
+    document.getElementById("questionBox").innerHTML = html;
+    
+    // Hide hint box when loading a new question
+    document.getElementById("hintBox").style.display = "none";
+
+    // Update Flag button text
+    document.getElementById("flagBtn").innerText = flags[current] ? "Unflag Question" : "Flag for Review";
+    updatePalette();
+}
+
+function saveAns(v){
+    answers[current] = v;
+    updatePalette();
+}
+
+function showHint() {
+    let hintBox = document.getElementById("hintBox");
+    hintBox.innerText = questions[current].hint;
+    hintBox.style.display = "block";
+}
+
+function nextQ(){ if(current < questions.length - 1){ current++; loadQ(); } }
+function prevQ(){ if(current > 0){ current--; loadQ(); } }
+function goQ(i){ current = i; loadQ(); }
+
+function toggleFlag() {
+    flags[current] = !flags[current];
+    loadQ(); 
+}
+
+function confirmSubmit() {
+    let unattempted = answers.filter(a => a === null).length;
+    let msg = unattempted > 0 
+        ? `You have ${unattempted} unattempted questions. Are you sure you want to submit?`
+        : `Are you sure you want to submit your exam?`;
+        
+    if(confirm(msg)) {
+        submitExam();
+    }
+}
+
+function submitExam(){
+    examSubmitted = true;
+    let score = 0;
+
+    answers.forEach((ans, i) => {
+        if(ans === questions[i].a) score++;
+    });
+
+    let percentage = Math.round((score / questions.length) * 100);
+    let grade = percentage >= 70 ? 'A' : percentage >= 60 ? 'B' : percentage >= 50 ? 'C' : percentage >= 45 ? 'D' : 'F';
+
+    let resultHtml = `
+        <div class="result-screen">
+            <h2>Practice Exam Submitted</h2>
+            <p>Great job completing the GET307 AI CBT.</p>
+            <div class="score-circle">${percentage}%</div>
+            <h3>Raw Score: ${score} / ${questions.length}</h3>
+            <h3 style="color: #3b82f6;">Final Grade: ${grade}</h3>
+        </div>
+    `;
+
+    document.getElementById("mainArea").innerHTML = resultHtml;
+    document.getElementById("timer").innerHTML = "EXAM ENDED";
+    document.getElementById("timer").classList.remove("timer-warning");
+}
+
+loadQ();
+
+// Timer Logic
+let time = 1800; // 30 minutes
+let timerInterval = setInterval(() => {
+    if(examSubmitted) {
+        clearInterval(timerInterval);
+        return;
+    }
+
+    let m = Math.floor(time / 60);
+    let s = time % 60;
+    let timerEl = document.getElementById("timer");
+
+    timerEl.innerText = m + ":" + (s < 10 ? "0" + s : s);
+
+    if (time <= 300) {
+        timerEl.classList.add("timer-warning");
+    }
+
+    time--;
+
+    if(time <= 0) {
+        clearInterval(timerInterval);
+        alert("Time is up! Your exam will now be submitted automatically.");
+        submitExam();
+    }
+}, 1000);
+
+</script>
+</body>
+</html>
         -webkit-text-fill-color: transparent;
         margin-bottom: 40px;
     }
