@@ -1,29 +1,315 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GET307 AI - University CBT Portal</title>
+<title>GET307 AI CBT Exam - Advanced</title>
+
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
-    body {
-        font-family: 'Inter', Arial, sans-serif;
-        background-color: #f1f5f9;
-        color: #1e293b;
-        margin: 0;
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-        overflow: hidden;
+body{
+font-family:Arial;
+margin:0;
+background:linear-gradient(120deg,#0f172a,#1e293b);
+color:white;
+}
+
+header{
+background:#020617;
+padding:15px;
+text-align:center;
+font-size:22px;
+}
+
+.timer{
+float:right;
+color:#38bdf8;
+}
+
+.container{
+display:flex;
+}
+
+.palette{
+width:220px;
+background:#020617;
+padding:10px;
+height:100vh;
+overflow:auto;
+transition: all 0.3s ease;
+}
+
+.palette button{
+width:40px;
+height:40px;
+margin:4px;
+border:none;
+border-radius:6px;
+background:#334155;
+color:white;
+cursor:pointer;
+}
+
+.palette button.answered{
+background:#22c55e;
+}
+
+.main{
+flex:1;
+padding:30px;
+overflow-y:auto;
+height: calc(100vh - 60px); /* Account for header */
+box-sizing: border-box;
+}
+
+.question{
+background:#1e293b;
+padding:20px;
+border-radius:10px;
+}
+
+.options label{
+display:block;
+margin:10px 0;
+cursor:pointer;
+}
+
+.controls{
+margin-top:20px;
+}
+
+button{
+padding:8px 14px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+.next{background:#3b82f6;color:white;}
+.prev{background:#64748b;color:white;}
+.hintbtn{background:#eab308;color:black;}
+.submit{background:#22c55e;color:white;}
+
+.hint{
+display:none;
+color:#facc15;
+margin-top:10px;
+}
+
+/* Review Screen Styles */
+.review-card {
+background:#0f172a; 
+padding:15px; 
+margin-bottom:15px; 
+border-left:4px solid #ef4444; 
+border-radius:6px;
+}
+.review-correct {
+color:#22c55e; 
+margin:5px 0;
+}
+.review-wrong {
+color:#ef4444; 
+margin:5px 0;
+}
+.review-explanation {
+color:#facc15; 
+margin-top:10px; 
+font-size:14px;
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+GET307 Artificial Intelligence CBT (Advanced Level)
+<span class="timer" id="timer">30:00</span>
+</header>
+
+<div class="container">
+
+<div class="palette" id="palette"></div>
+
+<div class="main" id="mainArea">
+
+<div id="questionBox"></div>
+
+<div class="controls">
+<button class="prev" onclick="prevQ()">Previous</button>
+<button class="next" onclick="nextQ()">Next</button>
+<button class="hintbtn" onclick="showHint()">Hint</button>
+<button class="submit" onclick="confirmSubmit()">Submit</button>
+</div>
+
+<div id="hint" class="hint"></div>
+
+</div>
+</div>
+
+<script>
+
+const questions=[
+{q:`For the A* search algorithm to guarantee an optimal solution, the heuristic function h(n) must be admissible. What does this mean?`,options:[`h(n) must accurately predict the exact cost to the goal.`,`h(n) must never overestimate the actual cost to reach the goal.`,`h(n) must always be greater than the step cost g(n).`,`h(n) must equal the total path cost f(n).`],a:1,hint:`Think about avoiding overly pessimistic estimates.`},
+{q:`In the worst-case scenario, what is the time complexity of the Minimax algorithm with Alpha-Beta pruning applied to a game tree with branching factor 'b' and depth 'd'?`,options:[`O(b^(d/2))`,`O(b * d)`,`O(b^d)`,`O(d^b)`],a:2,hint:`Alpha-Beta pruning improves the best/average case, but what happens if the nodes are ordered in the worst possible way?`},
+{q:`Which mathematical operation allows Support Vector Machines (SVMs) to classify non-linearly separable data without explicitly mapping features to a higher-dimensional space?`,options:[`The Sigmoid Activation`,`The Kernel Trick`,`Gradient Descent`,`Principal Component Analysis`],a:1,hint:`It computes the dot product in the higher-dimensional space directly.`},
+{q:`In an artificial neural network, what is the primary consequence of using a linear activation function in all hidden layers?`,options:[`The network will suffer from the exploding gradient problem.`,`The network collapses into an equivalent single-layer perceptron.`,`The model will overfit the training data almost immediately.`,`The forward pass will output binary values only.`],a:1,hint:`Linear combinations of linear combinations are still linear.`},
+{q:`When applying L1 Regularization (Lasso) to a Machine Learning model, what happens to the weight vectors during optimization?`,options:[`All weights are scaled down uniformly but never reach zero.`,`The weights tend to become sparse, with many weights driven exactly to zero.`,`The weights increase infinitely if the learning rate is too high.`,`The weights map directly to the eigenvectors of the dataset.`],a:1,hint:`This regularization acts as a built-in feature selection method.`},
+{q:`In Natural Language Processing, the self-attention mechanism in a Transformer model computes a weighted sum of values. How are these weights determined?`,options:[`By multiplying the Query (Q) and Key (K) matrices and applying a softmax function.`,`By using recurrent hidden states from the previous timestep.`,`By applying Convolutional pooling over the word embeddings.`,`By using the backpropagation error from the decoder.`],a:0,hint:`Look for the Q and K interaction.`},
+{q:`What does the Bellman Optimality Equation compute in a Markov Decision Process (MDP)?`,options:[`The probability of transitioning from state s to state s'.`,`The maximum expected utility of a state assuming optimal future actions.`,`The loss function of a Deep Q-Network.`,`The probability of selecting a random action in epsilon-greedy exploration.`],a:1,hint:`It looks for the 'utility' or 'value' of making the best choice.`},
+{q:`The 'Vanishing Gradient' problem in Deep Learning is most frequently caused by:`,options:[`Using ReLU activation functions in deep networks.`,`Using large batch sizes during stochastic gradient descent.`,`Repeated multiplication of derivatives less than 1 when using Sigmoid/Tanh activations.`,`A learning rate that is set too high.`],a:2,hint:`Think about the chain rule and multiplying decimals.`},
+{q:`In First-Order Logic (FOL), 'Skolemization' is a process used to:`,options:[`Convert Modus Ponens into Modus Tollens.`,`Remove existential quantifiers by replacing their variables with Skolem constants or functions.`,`Prove that a set of clauses is logically valid without inference.`,`Convert universal quantifiers into propositional logic symbols.`],a:1,hint:`It helps standardize formulas into Conjunctive Normal Form (CNF).`},
+{q:`Which of the following describes the 'Curse of Dimensionality' in algorithms like K-Nearest Neighbors (KNN)?`,options:[`As dimensions increase, the dataset requires exponentially more memory.`,`As dimensions increase, the distance between any two points converges, making 'nearest' meaningless.`,`As dimensions increase, the model forces the learning rate to drop to zero.`,`As dimensions increase, K must be reduced to 1.`],a:1,hint:`Think about how distance metrics behave in a 10,000-dimension space.`},
+{q:`Which statistical technique is primarily used to project high-dimensional data onto a lower-dimensional subspace while maximizing variance?`,options:[`Linear Discriminant Analysis (LDA)`,`Principal Component Analysis (PCA)`,`Singular Value Decomposition (SVD)`,`K-Means Clustering`],a:1,hint:`It relies on the eigenvectors of the data's covariance matrix.`},
+{q:`In a Hidden Markov Model (HMM), which algorithm is used to find the most likely sequence of hidden states given a sequence of observations?`,options:[`The Forward Algorithm`,`The Viterbi Algorithm`,`The Baum-Welch Algorithm`,`The Metropolis-Hastings Algorithm`],a:1,hint:`It's a dynamic programming approach for decoding.`},
+{q:`What is the mathematical objective of a Generative Adversarial Network (GAN)?`,options:[`Minimizing the Mean Squared Error of the generator.`,`Maximizing the log-likelihood of the discriminator.`,`Finding the Nash Equilibrium in a two-player minimax game.`,`Minimizing the KL divergence between two identical distributions.`],a:2,hint:`Think of game theory between the Generator and Discriminator.`},
+{q:`In Decision Trees, the 'Information Gain' used to select the best splitting attribute is calculated based on which concept from information theory?`,options:[`Cross-Entropy`,`Gini Impurity`,`Shannon Entropy`,`Kullback-Leibler Divergence`],a:2,hint:`It measures the expected reduction in uncertainty.`},
+{q:`Which component of a Convolutional Neural Network (CNN) is responsible for providing spatial invariance to small translations in the input image?`,options:[`The Fully Connected Layer`,`The Activation Function`,`The Pooling (Subsampling) Layer`,`The Flattening Layer`],a:2,hint:`This layer reduces the resolution of the feature maps.`},
+{q:`What does 'Experience Replay' solve in Deep Q-Networks (DQN)?`,options:[`It speeds up the computation time of the Bellman equation.`,`It breaks the temporal correlation between consecutive training samples, stabilizing the neural network.`,`It prevents the epsilon-greedy algorithm from exploring too much.`,`It replaces the target network with a frozen actor-critic architecture.`],a:1,hint:`Sequential frames in a game are highly correlated; training on them directly causes instability.`},
+{q:`In the context of the Bias-Variance Tradeoff, an overly complex model (like an unpruned decision tree) will typically exhibit:`,options:[`High Bias, High Variance`,`Low Bias, High Variance`,`High Bias, Low Variance`,`Low Bias, Low Variance`],a:1,hint:`It learns the training data perfectly but fails on unseen data.`},
+{q:`Which ensemble learning method trains multiple weak learners sequentially, where each new learner focuses on the errors made by the previous ones?`,options:[`Bagging (Bootstrap Aggregating)`,`Random Forests`,`Gradient Boosting`,`K-Fold Cross Validation`],a:2,hint:`It 'boosts' performance by correcting past mistakes.`},
+{q:`In Propositional Logic, the Resolution inference rule states that if we have (A OR B) and (NOT B OR C), we can infer:`,options:[`A OR C`,`A AND C`,`NOT A OR NOT C`,`B OR C`],a:0,hint:`The conflicting literal (B) is resolved/cancelled out.`},
+{q:`Which heuristic function is strictly dominant (always expands equal or fewer nodes) for the 8-puzzle problem?`,options:[`Number of misplaced tiles.`,`Sum of Manhattan distances of tiles from their goal positions.`,`Euclidean distance of the empty space.`,`Breadth-First Search cost.`],a:1,hint:`Which one gives a higher, yet still admissible, estimate?`},
+{q:`What is the primary role of the 'Forget Gate' in a Long Short-Term Memory (LSTM) network?`,options:[`To decide what new information should be added to the cell state.`,`To scale the output activation before passing it to the next layer.`,`To decide what proportion of the previous cell state should be discarded.`,`To prevent the vanishing gradient by skipping backward passes.`],a:2,hint:`It uses a sigmoid layer to output a number between 0 and 1 for the old cell state.`},
+{q:`In constraint satisfaction problems (CSPs), the AC-3 algorithm is used to enforce:`,options:[`Node Consistency`,`Arc Consistency`,`Path Consistency`,`K-Consistency`],a:1,hint:`It ensures every value in a variable's domain satisfies the binary constraints.`},
+{q:`What is 'Dropout' in the context of training deep neural networks?`,options:[`Removing outliers from the training dataset.`,`Randomly setting a fraction of input units to 0 at each update during training to prevent overfitting.`,`Stopping the training process early when validation loss increases.`,`Discarding gradients that exceed a certain threshold.`],a:1,hint:`It forces the network to learn robust features without relying on specific neurons.`},
+{q:`In unsupervised learning, what does the K-Means clustering algorithm actually guarantee?`,options:[`Finding the global optimal clustering.`,`Convergence to a local minimum of the within-cluster sum of squares.`,`Automatic selection of the optimal number of clusters (K).`,`Equal distribution of data points across all clusters.`],a:1,hint:`It depends heavily on the initial random placement of centroids.`},
+{q:`Which evaluation metric is most appropriate for an imbalanced classification problem where false negatives are highly critical (e.g., medical diagnosis)?`,options:[`Accuracy`,`Precision`,`Recall (Sensitivity)`,`F1-Score`],a:2,hint:`You want to capture as many true positive cases as possible, even if it means some false alarms.`},
+{q:`In logic, a knowledge base KB entails a sentence alpha (KB ⊨ α) if and only if:`,options:[`Alpha is true in at least one model where KB is true.`,`Alpha is true in all models where KB is true.`,`KB can be derived from Alpha using inference rules.`,`Alpha and KB contain the same variables.`],a:1,hint:`Think of entailment as a strict guarantee across all possible worlds.`},
+{q:`What is the primary difference between Q-Learning and SARSA in Reinforcement Learning?`,options:[`Q-Learning requires a known transition model, SARSA is model-free.`,`Q-Learning is an off-policy algorithm, SARSA is an on-policy algorithm.`,`SARSA updates values using the Bellman Optimality Equation, Q-Learning does not.`,`Q-Learning is used for continuous action spaces, SARSA for discrete.`],a:1,hint:`One assumes the greedy action for the update, while the other uses the action actually taken by the policy.`},
+{q:`Which property of Fuzzy Logic operations ensures that the intersection of two fuzzy sets is determined by the minimum of their membership values?`,options:[`S-Norm (T-conorm)`,`T-Norm`,`Defuzzification`,`Linguistic Hedges`],a:1,hint:`It generalizes the logical AND operator.`},
+{q:`In a Bayesian Network, two variables are considered 'conditionally independent' given a third variable if:`,options:[`They are connected by a direct directed edge.`,`The path between them is d-separated by the third variable.`,`They share the same prior probability.`,`They are both root nodes in the graph.`],a:1,hint:`Look up the concept of 'd-separation'.`},
+{q:`What does the 'Word2Vec Skip-Gram' model attempt to predict during training?`,options:[`The target word given its surrounding context words.`,`The surrounding context words given a single target word.`,`The next character in a sequence.`,`The syntactic parse tree of a sentence.`],a:1,hint:`It 'skips' outward from the center.`},
+{q:`In the context of optimization algorithms, what is the purpose of adding 'Momentum' to Gradient Descent?`,options:[`To ensure the learning rate decreases over time.`,`To compute the second derivative (Hessian matrix) efficiently.`,`To accelerate gradients in the right direction and dampen oscillations.`,`To randomly reset weights when stuck in a local minimum.`],a:2,hint:`Think of a ball rolling down a hill, gaining speed.`},
+{q:`The concept of 'Gradient Clipping' is most commonly used to solve which problem in Recurrent Neural Networks?`,options:[`Overfitting`,`The Vanishing Gradient Problem`,`The Exploding Gradient Problem`,`Catastrophic Forgetting`],a:2,hint:`It caps the derivatives to a maximum threshold.`},
+{q:`Which of the following is true about the Naive Bayes classifier?`,options:[`It assumes that all features are highly correlated.`,`It assumes that features are conditionally independent given the class label.`,`It calculates the exact joint probability distribution of the dataset.`,`It requires a differentiable loss function to train.`],a:1,hint:`This 'naive' assumption makes the math much simpler to compute.`},
+{q:`In AI planning, a STRIPS operator is defined by three components:`,options:[`States, Actions, Rewards`,`Preconditions, Add List, Delete List`,`Heuristics, Costs, Goals`,`Nodes, Edges, Weights`],a:1,hint:`What must be true before the action, what becomes true, and what becomes false?`},
+{q:`Batch Normalization in Deep Learning provides which primary benefit?`,options:[`It replaces the need for activation functions.`,`It reduces internal covariate shift, allowing for higher learning rates.`,`It converts all weights into binary values to save memory.`,`It eliminates the need for a loss function.`],a:1,hint:`It standardizes the inputs to a layer for each mini-batch.`},
+{q:`In an Autoencoder neural network, the 'bottleneck' hidden layer is crucial because:`,options:[`It prevents the network from simply learning the identity function by copying input to output.`,`It increases the dimensionality of the data for better classification.`,`It stores the labels for supervised fine-tuning.`,`It computes the gradient descent update explicitly.`],a:0,hint:`It forces the network to learn a compressed representation.`},
+{q:`In genetic algorithms, what is the primary purpose of the 'Mutation' operator?`,options:[`To combine the best traits of two parents.`,`To select the fittest individuals for the next generation.`,`To maintain genetic diversity and prevent premature convergence to a local optimum.`,`To calculate the fitness score of the population.`],a:2,hint:`It introduces random, unpredictable changes.`},
+{q:`Which formulation is used to update the posterior probability of a hypothesis as new evidence becomes available?`,options:[`Markov Property`,`Bellman Equation`,`Bayes' Theorem`,`Laplace Smoothing`],a:2,hint:`P(A|B) = [P(B|A) * P(A)] / P(B)`},
+{q:`In Natural Language Processing, the BLEU score is primarily used to evaluate:`,options:[`The sentiment of a given text.`,`The quality of text generated by machine translation systems against human reference translations.`,`The grammatical correctness of a syntax tree.`,`The cosine similarity between two word embeddings.`],a:1,hint:`It relies on n-gram precision.`},
+{q:`What distinguishes a 'Zero-Shot Learning' model from traditional supervised learning models?`,options:[`It is trained entirely on unlabelled data using clustering.`,`It can classify data instances from classes it has never explicitly seen during training.`,`It uses zero hidden layers in its architecture.`,`It requires zero computational power during inference.`],a:1,hint:`It uses auxiliary information like semantic attributes to recognize new things.`}
+];
+
+let current=0;
+let answers=new Array(questions.length).fill(null);
+
+const palette=document.getElementById("palette");
+
+for(let i=0;i<questions.length;i++){
+let b=document.createElement("button");
+b.innerText=i+1;
+b.onclick=()=>goQ(i);
+palette.appendChild(b);
+}
+
+function loadQ(){
+let q=questions[current];
+let html=`<div class="question"><h3>Question ${current+1}</h3><p>${q.q}</p><div class="options">`;
+
+q.options.forEach((opt,i)=>{
+let checked=answers[current]==i?"checked":"";
+html+=`<label><input type="radio" name="opt" value="${i}" ${checked} onclick="saveAns(${i})"> ${opt}</label>`;
+});
+
+html+=`</div></div>`;
+document.getElementById("questionBox").innerHTML=html;
+document.getElementById("hint").style.display="none";
+}
+
+function saveAns(v){
+answers[current]=v;
+palette.children[current].classList.add("answered");
+}
+
+function nextQ(){if(current<questions.length-1){current++;loadQ();}}
+function prevQ(){if(current>0){current--;loadQ();}}
+function goQ(i){current=i;loadQ();}
+
+function showHint(){
+document.getElementById("hint").innerText=questions[current].hint;
+document.getElementById("hint").style.display="block";
+}
+
+function confirmSubmit() {
+    let unattempted = answers.filter(a => a === null).length;
+    let msg = unattempted > 0 
+        ? `You have ${unattempted} unattempted questions. Are you sure you want to submit?`
+        : `Are you sure you want to submit your exam?`;
+        
+    if(confirm(msg)) {
+        submitExam();
     }
+}
 
-    header {
-        background: linear-gradient(135deg, #2563eb, #7c3aed, #db2777);
-        padding: 15px 30px;
-        color: white;
-        display: flex;
-        justify-content: space-between;
+// Global variable for the timer so we can stop it later
+let timerInterval;
+
+function submitExam(){
+    // Stop the timer
+    clearInterval(timerInterval);
+    document.getElementById("timer").innerText = "EXAM OVER";
+    
+    // Hide the sidebar palette to give the review screen full width
+    document.getElementById("palette").style.display = "none";
+    
+    let score = 0;
+    answers.forEach((ans,i)=>{if(ans===questions[i].a)score++;});
+    
+    let percentage = ((score / questions.length) * 100).toFixed(1);
+    
+    // Build the results UI
+    let resultHTML = `<div class="question">`;
+    resultHTML += `<h2>Exam Completed!</h2>`;
+    resultHTML += `<h3>Your Score: ${score} / ${questions.length} (${percentage}%)</h3>`;
+    resultHTML += `<hr style="border-color:#334155; margin:20px 0;">`;
+    
+    let wrongCount = 0;
+    
+    // Loop through to find incorrect answers
+    questions.forEach((q, i) => {
+        if (answers[i] !== q.a) {
+            wrongCount++;
+            let userAnswerText = answers[i] !== null ? q.options[answers[i]] : "Not Answered";
+            let correctAnswerText = q.options[q.a];
+            
+            resultHTML += `
+            <div class="review-card">
+                <p><strong>Q${i+1}: ${q.q}</strong></p>
+                <p class="review-wrong">❌ Your Answer: ${userAnswerText}</p>
+                <p class="review-correct">✅ Correct Answer: ${correctAnswerText}</p>
+                <p class="review-explanation">💡 <em>Explanation: ${q.hint}</em></p>
+            </div>`;
+        }
+    });
+    
+    if (wrongCount === 0) {
+        resultHTML += `<p class="review-correct">Outstanding! You scored a perfect 100%. No incorrect answers to review.</p>`;
+    } else {
+        resultHTML = `<h3>Review of Incorrect Answers (${wrongCount}):</h3>` + resultHTML;
+    }
+    
+    resultHTML += `</div>`;
+    
+    // Inject the results into the main container
+    document.getElementById("mainArea").innerHTML = resultHTML;
+}
+
+loadQ();
+
+let time=1800; // 30 minutes in seconds
+timerInterval = setInterval(()=>{
+let m=Math.floor(time/60);
+let s=time%60;
+document.getElementById("timer").innerText=m+":"+(s<10?"0"+s:s);
+time--;
+if(time<=0) submitExam(); // Auto submit if time runs out
+},1000);
+
+</script>
+
+</body>
+</html>
         align-items: center;
         box-shadow: 0 4px 10px rgba(0,0,0,0.15);
         z-index: 10;
